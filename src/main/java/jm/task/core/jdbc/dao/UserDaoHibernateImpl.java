@@ -13,6 +13,7 @@ public class UserDaoHibernateImpl implements UserDao {
     @Override
     public void createUsersTable() {
         //test comment
+        System.out.println("test");
     }
 
     @Override
