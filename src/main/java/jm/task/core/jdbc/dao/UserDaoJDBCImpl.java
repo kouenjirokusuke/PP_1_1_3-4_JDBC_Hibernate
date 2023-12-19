@@ -13,7 +13,7 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void createUsersTable() {
-        try (Connection connection = Util.getConnection()) {
+        try (Connection connection = Util.getJBDCConnection()) {
             ResultSet tables = connection.getMetaData().getTables(null, null, "users", new String[] {"TABLE"});
 
             if (!tables.next()) {
@@ -27,7 +27,7 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void dropUsersTable() {
-        try (Connection connection = Util.getConnection()) {
+        try (Connection connection = Util.getJBDCConnection()) {
             ResultSet tables = connection.getMetaData().getTables(null, null, "users", new String[] {"TABLE"});
 
             if (tables.next()) {
@@ -41,7 +41,7 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void saveUser(String name, String lastName, byte age) {
-        try (Connection connection = Util.getConnection()) {
+        try (Connection connection = Util.getJBDCConnection()) {
             connection.createStatement().executeUpdate(String.format("INSERT INTO users (name, last_name, age)" +
                     " VALUES ('%s', '%s', '%d')", name, lastName, age));
         } catch (SQLException e) {
@@ -52,7 +52,7 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void removeUserById(long id) {
-        try (Connection connection = Util.getConnection()) {
+        try (Connection connection = Util.getJBDCConnection()) {
             connection.createStatement().executeUpdate(String.format("DELETE FROM users WHERE id='%d'", id));
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -62,7 +62,7 @@ public class UserDaoJDBCImpl implements UserDao {
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
 
-        try (Connection connection = Util.getConnection()) {
+        try (Connection connection = Util.getJBDCConnection()) {
             ResultSet resultSet = connection.createStatement().executeQuery("SELECT * FROM users");
 
             while (resultSet.next()) {
@@ -82,7 +82,7 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void cleanUsersTable() {
-        try (Connection connection = Util.getConnection()) {
+        try (Connection connection = Util.getJBDCConnection()) {
             connection.createStatement().executeUpdate("TRUNCATE TABLE users");
         } catch (SQLException e) {
             throw new RuntimeException(e);
