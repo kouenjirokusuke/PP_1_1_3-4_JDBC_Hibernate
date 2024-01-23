@@ -13,11 +13,13 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void createUsersTable() {
-        try (Connection connection = Util.getConnection()) {
-            ResultSet tables = connection.getMetaData().getTables(null, null, "users", new String[] {"TABLE"});
+        try {
+            Connection connection = Util.getConnection();
+            ResultSet tables = connection.getMetaData().getTables("katapp114", null, "users", new String[] {"TABLE"});
 
             if (!tables.next()) {
-                connection.createStatement().executeUpdate("CREATE TABLE users (Id BIGINT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(32), last_name VARCHAR(32), age TINYINT)");
+                connection.prepareStatement("CREATE TABLE users (Id BIGINT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(32), last_name VARCHAR(32), age TINYINT)").executeUpdate();
+                System.out.println("table created");
             } else {
                 System.out.println("Table 'users' already exist.");
             }
@@ -27,11 +29,12 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void dropUsersTable() {
-        try (Connection connection = Util.getConnection()) {
+        try {
+            Connection connection = Util.getConnection();
             ResultSet tables = connection.getMetaData().getTables(null, null, "users", new String[] {"TABLE"});
 
             if (tables.next()) {
-                connection.createStatement().executeUpdate("DROP TABLE users");
+                connection.prepareStatement("DROP TABLE users").executeUpdate();
             } else {
                 System.out.println("Table 'users' doesn't exist.");
             }
@@ -41,9 +44,14 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void saveUser(String name, String lastName, byte age) {
-        try (Connection connection = Util.getConnection()) {
-            connection.createStatement().executeUpdate(String.format("INSERT INTO users (name, last_name, age)" +
-                    " VALUES ('%s', '%s', '%d')", name, lastName, age));
+        try {
+            Connection connection = Util.getConnection();
+
+            PreparedStatement statement = connection.prepareStatement("INSERT INTO users (name, last_name, age) VALUES (?, ?, ?)");
+            statement.setString(1, name);
+            statement.setString(2, lastName);
+            statement.setByte(3, age);
+            statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -52,8 +60,10 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void removeUserById(long id) {
-        try (Connection connection = Util.getConnection()) {
-            connection.createStatement().executeUpdate(String.format("DELETE FROM users WHERE id='%d'", id));
+        try {
+            PreparedStatement statement = Util.getConnection().prepareStatement("DELETE FROM users WHERE id=?");
+            statement.setLong(1, id);
+            statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -62,8 +72,9 @@ public class UserDaoJDBCImpl implements UserDao {
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
 
-        try (Connection connection = Util.getConnection()) {
-            ResultSet resultSet = connection.createStatement().executeQuery("SELECT * FROM users");
+        try {
+            Connection connection = Util.getConnection();
+            ResultSet resultSet = connection.prepareStatement("SELECT * FROM users").executeQuery();
 
             while (resultSet.next()) {
                 User user = new User();
@@ -82,8 +93,8 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void cleanUsersTable() {
-        try (Connection connection = Util.getConnection()) {
-            connection.createStatement().executeUpdate("TRUNCATE TABLE users");
+        try {
+            Util.getConnection().prepareStatement("TRUNCATE TABLE users").executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
